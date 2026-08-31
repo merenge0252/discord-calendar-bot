@@ -1,0 +1,8 @@
+services:
+  cal-bot:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      # サービスアカウント鍵をコンテナ内に読み取り専用でマウント
+      - ./service_account.json:/app/service_account.json:ro
