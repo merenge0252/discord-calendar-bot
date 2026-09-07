@@ -10,64 +10,7 @@ Claude / Anthropic API には依存しない（純Pythonパース）。サービ
 !cal 9/10 終日 帰省
 ```
 
-> 🛠 **このbotを常駐PCにセットアップする担当者の方へ**: 上から順にやるだけの手順シート **[SETUP.md](SETUP.md)** を用意しています。まずそちらを参照してください。
-
----
-
-## セットアップ
-
-### 1. Discord bot を作る
-1. https://discord.com/developers/applications → **New Application**
-2. 左メニュー **Bot** → **Reset Token** でトークンを取得（後で `.env` に入れる）
-3. 同ページの **Privileged Gateway Intents** で **MESSAGE CONTENT INTENT** を **ON**
-4. 左メニュー **OAuth2 > URL Generator** → scope `bot` を選び、権限 `Send Messages` / `Read Message History` にチェック → 生成URLで自分のサーバーに招待
-
-### 2. Google 側（サービスアカウント）
-1. https://console.cloud.google.com/ でプロジェクトを作成（既存でも可）
-2. **APIとサービス > ライブラリ** で **Google Calendar API** を有効化
-3. **APIとサービス > 認証情報 > 認証情報を作成 > サービスアカウント** を作成
-4. 作成したサービスアカウントを開く → **キー > 鍵を追加 > 新しい鍵 > JSON** をダウンロード
-   → このファイルを `service_account.json` としてこのフォルダに置く
-5. サービスアカウントのメールアドレス（`xxxx@yyyy.iam.gserviceaccount.com`）をコピー
-
-### 3. カレンダーをサービスアカウントに共有（重要）
-サービスアカウントは他人。あなたのカレンダーに書かせるには共有が必要。
-
-1. PCの Google カレンダーを開く
-2. 書き込み先カレンダーの **設定と共有**
-3. **特定のユーザーやグループと共有** → 手順2-5でコピーしたサービスアカウントのメールを追加
-4. 権限を **「予定の変更権限」** にする
-5. 同じ設定画面の **「カレンダーの統合」** にある **カレンダー ID** をコピー（`.env` の `CALENDAR_ID` に入れる。個人の主カレンダーなら通常あなたのGmailアドレス）
-
-> メモ: サービスアカウントは Google カレンダーの `primary`（主カレンダー）エイリアスには書けない。
-> 上記のように**実際のカレンダーIDを指定して共有**すれば、あなたの普段のカレンダーにそのまま予定が入る。
-
-### 4. 環境変数
-`.env.example` をコピーして `.env` を作り、値を埋める:
-
-```
-DISCORD_BOT_TOKEN=（手順1のトークン）
-CALENDAR_ID=（手順3のカレンダーID）
-SERVICE_ACCOUNT_FILE=service_account.json
-ALLOWED_CHANNEL_IDS=（任意。反応させるチャンネルを限定するなら）
-```
-
----
-
-## 起動
-
-### ローカル / VPS（直接）
-```bash
-pip install -r requirements.txt
-python bot.py
-```
-
-### Docker（VPS推奨・常駐）
-`.env` と `service_account.json` をこのフォルダに置いた状態で:
-```bash
-docker compose up -d --build
-docker compose logs -f      # ログ確認
-```
+> 🛠 **セットアップする方へ**: Discord bot 作成・サービスアカウント発行・カレンダー共有・`.env` 設定・Docker常駐まで、上から順にやるだけの手順シート **[SETUP.md](SETUP.md)** にまとめています。まずそちらを参照してください。
 
 ---
 
@@ -85,8 +28,28 @@ docker compose logs -f      # ログ確認
 
 ---
 
-## パーサ単体テスト
-Discord/Google 無しで日時解釈だけ確認できる:
+## 開発者向け
+
+Discord bot 作成・サービスアカウント・カレンダー共有・`.env` 記入の詳細手順は **[SETUP.md](SETUP.md)** を参照。
+`.env` と `service_account.json` を用意したうえで:
+
+### 直接実行
+```bash
+pip install -r requirements.txt
+python bot.py
+```
+
+Docker での常駐起動は **[SETUP.md 手順⑤](SETUP.md)** を参照。
+
+### パーサ単体テスト
+Discord / Google 無しで日時解釈だけ確認できる:
 ```bash
 python dateparse.py
 ```
+
+### 構成
+| ファイル | 役割 |
+|---|---|
+| `bot.py` | Discord クライアント・コマンド処理 |
+| `dateparse.py` | 日本語の日付・時刻パース（純Python） |
+| `calendar_client.py` | Google Calendar への予定登録 |
